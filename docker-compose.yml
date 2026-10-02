@@ -4,16 +4,17 @@ services:
     container_name: hospital_db
     restart: unless-stopped
     environment:
-      POSTGRES_USER: ${POSTGRES_USER:-hospital}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-hospital123}
-      POSTGRES_DB: ${POSTGRES_DB:-hospital_db}
+      POSTGRES_USER: ${POSTGRES_USER:?Defina POSTGRES_USER no .env (veja .env.example)}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Defina POSTGRES_PASSWORD no .env (veja .env.example)}
+      POSTGRES_DB: ${POSTGRES_DB:?Defina POSTGRES_DB no .env (veja .env.example)}
     ports:
-      - "${POSTGRES_PORT:-5432}:5432"
+      - "${POSTGRES_PORT:?Defina POSTGRES_PORT no .env (veja .env.example)}:5432"
     volumes:
       - pgdata:/var/lib/postgresql/data
       - ./database/init:/docker-entrypoint-initdb.d:ro
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-hospital} -d ${POSTGRES_DB:-hospital_db}"]
+      # $$ usa as variáveis do próprio container, sem repetir a interpolação
+      test: ["CMD-SHELL", "pg_isready -U $$POSTGRES_USER -d $$POSTGRES_DB"]
       interval: 5s
       timeout: 5s
       retries: 10
@@ -23,7 +24,7 @@ services:
     container_name: hospital_adminer
     restart: unless-stopped
     ports:
-      - "${ADMINER_PORT:-8080}:8080"
+      - "${ADMINER_PORT:?Defina ADMINER_PORT no .env (veja .env.example)}:8080"
     depends_on:
       db:
         condition: service_healthy
