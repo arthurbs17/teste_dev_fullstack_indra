@@ -2,6 +2,9 @@
   "name": "@hospital/api",
   "version": "0.0.0",
   "private": true,
+  "files": [
+    "dist"
+  ],
   "scripts": {
     "generate": "prisma generate",
     "build": "nest build",
