@@ -17,6 +17,31 @@ const errorMiddleware = createMiddleware().server(async ({ next }) => {
   }
 });
 
+/**
+ * Cabeçalhos de segurança em todas as respostas do servidor (SSR, 404 e server
+ * functions). O dashboard exibe dados de pacientes: não pode ser embutido em
+ * outros sites nem indexado por buscadores. Uma CSP completa exigiria nonce nos
+ * scripts inline do SSR; aqui ela restringe só quem pode embutir a página.
+ */
+const SECURITY_HEADERS = {
+  'Content-Security-Policy': "frame-ancestors 'none'",
+  'X-Frame-Options': 'DENY',
+  'X-Content-Type-Options': 'nosniff',
+  'Referrer-Policy': 'strict-origin-when-cross-origin',
+  'Permissions-Policy': 'camera=(), microphone=(), geolocation=()',
+  'X-Robots-Tag': 'noindex, nofollow',
+};
+
+const securityHeadersMiddleware = createMiddleware().server(async ({ next }) => {
+  const result = await next();
+  // Aplicado na resposta final para cobrir também as respostas montadas pelo
+  // próprio framework (ex.: 404), que ignoram setResponseHeaders.
+  for (const [name, value] of Object.entries(SECURITY_HEADERS)) {
+    result.response.headers.set(name, value);
+  }
+  return result;
+});
+
 // Start installs this automatically when src/start.ts is absent; defining the
 // file opts out, so re-add it explicitly to keep server functions protected
 // from cross-site requests.
@@ -25,5 +50,5 @@ const csrfMiddleware = createCsrfMiddleware({
 });
 
 export const startInstance = createStart(() => ({
-  requestMiddleware: [errorMiddleware, csrfMiddleware],
+  requestMiddleware: [securityHeadersMiddleware, errorMiddleware, csrfMiddleware],
 }));
