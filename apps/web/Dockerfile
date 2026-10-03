@@ -34,7 +34,9 @@ ENV NODE_ENV=production \
 COPY --from=builder --chown=node:node /repo/apps/web/.output ./.output
 USER node
 EXPOSE 3000
-# Verifica só o servidor do web (arquivo estático), sem depender da API
+# Verifica só o servidor do web (arquivo estático), sem depender da API.
+# 127.0.0.1 e não localhost: no Alpine, localhost resolve para ::1 (IPv6) e o
+# Nitro escuta em 0.0.0.0 (só IPv4).
 HEALTHCHECK --interval=10s --timeout=5s --start-period=10s --retries=5 \
-  CMD wget -qO- http://localhost:3000/robots.txt > /dev/null || exit 1
+  CMD wget -qO- http://127.0.0.1:3000/robots.txt > /dev/null || exit 1
 CMD ["node", ".output/server/index.mjs"]
