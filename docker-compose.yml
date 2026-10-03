@@ -48,20 +48,21 @@ services:
       db:
         condition: service_healthy
 
-  # --------------------------------------------------------------------------
-  # Serviço do frontend (Next.js), adicionado na fase 2:
-  #
-  # web:
-  #   build:
-  #     context: .
-  #     dockerfile: apps/web/Dockerfile
-  #   container_name: hospital_web
-  #   ports:
-  #     - "3000:3000"
-  #   depends_on:
-  #     api:
-  #       condition: service_healthy
-  # --------------------------------------------------------------------------
+  web:
+    build:
+      context: .
+      dockerfile: apps/web/Dockerfile
+    container_name: hospital_web
+    restart: unless-stopped
+    environment:
+      # O servidor do web chama a API pela rede interna do compose; o
+      # navegador nunca acessa a API diretamente.
+      API_URL: http://api:3001
+    ports:
+      - "${WEB_PORT:?Defina WEB_PORT no .env (veja .env.example)}:3000"
+    depends_on:
+      api:
+        condition: service_healthy
 
 volumes:
   pgdata:
