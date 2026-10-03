@@ -1,0 +1,9 @@
+{
+  "extends": "@hospital/tsconfig/nestjs.json",
+  "compilerOptions": {
+    "outDir": "./dist",
+    "baseUrl": "./",
+    "types": ["node", "jest"]
+  },
+  "include": ["src", "test", "prisma.config.ts"]
+}
