@@ -7,7 +7,6 @@
     "experimentalDecorators": true,
     "emitDecoratorMetadata": true,
     "isolatedModules": false,
-    "declaration": false,
-    "incremental": true
+    "declaration": false
   }
 }
