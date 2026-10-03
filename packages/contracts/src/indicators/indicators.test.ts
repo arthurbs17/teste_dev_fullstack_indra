@@ -11,3 +11,11 @@ describe('dailyCensusQuerySchema', () => {
     expect(result.success).toBe(false);
   });
 });
+
+describe('dailyCensusQuerySchema: limites', () => {
+  it('rejeita departamento acima do maior INTEGER do Postgres', () => {
+    expect(dailyCensusQuerySchema.safeParse({ departmentId: '9007199254740991' }).success).toBe(
+      false,
+    );
+  });
+});

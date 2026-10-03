@@ -73,6 +73,8 @@ export const Route = createRootRoute({
     meta: [
       { charSet: 'utf-8' },
       { name: 'viewport', content: 'width=device-width, initial-scale=1' },
+      // Dados de pacientes: fora de buscadores
+      { name: 'robots', content: 'noindex, nofollow' },
       { title: 'Gestão Hospitalar' },
       {
         name: 'description',

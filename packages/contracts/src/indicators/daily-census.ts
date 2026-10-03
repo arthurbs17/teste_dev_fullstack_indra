@@ -1,6 +1,6 @@
 import { z } from 'zod';
 import { isoDateSchema } from '../shared/date';
-import { rateSchema } from '../shared/params';
+import { dbIdSchema, rateSchema } from '../shared/params';
 import {
   periodFieldsSchema,
   periodRefinementMessage,
@@ -10,7 +10,7 @@ import {
 
 export const dailyCensusQuerySchema = periodFieldsSchema
   .extend({
-    departmentId: z.coerce.number().int().positive().optional(),
+    departmentId: dbIdSchema.optional(),
   })
   .refine(refinePeriod, periodRefinementMessage);
 export type DailyCensusQuery = z.infer<typeof dailyCensusQuerySchema>;

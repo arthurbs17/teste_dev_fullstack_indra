@@ -35,3 +35,10 @@ describe('listAdmissionsQuerySchema', () => {
     expect(result.success).toBe(false);
   });
 });
+
+describe('listAdmissionsQuerySchema: limites', () => {
+  it('rejeita departamento e página fora dos limites', () => {
+    expect(listAdmissionsQuerySchema.safeParse({ departmentId: '2147483648' }).success).toBe(false);
+    expect(listAdmissionsQuerySchema.safeParse({ page: '100001' }).success).toBe(false);
+  });
+});

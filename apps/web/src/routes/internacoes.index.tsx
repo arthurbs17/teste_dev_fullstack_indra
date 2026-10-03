@@ -3,6 +3,7 @@ import {
   type AdmissionStatus,
   admissionSortFields,
   admissionStatusSchema,
+  INT4_MAX,
 } from '@hospital/contracts';
 import { createFileRoute, Link, useNavigate } from '@tanstack/react-router';
 import { ArrowDown, ArrowUp, ArrowUpDown, ChevronLeft, ChevronRight, Search } from 'lucide-react';
@@ -38,11 +39,11 @@ function validateSearch(search: Record<string, unknown>): AdmissionsSearch {
 
   return {
     ...(status.success ? { status: status.data } : {}),
-    ...(Number.isInteger(dept) && dept > 0 ? { dept } : {}),
+    ...(Number.isInteger(dept) && dept > 0 && dept <= INT4_MAX ? { dept } : {}),
     ...(busca ? { busca: busca.slice(0, 100) } : {}),
     ...(ISO_DATE.test(de) ? { de } : {}),
     ...(ISO_DATE.test(ate) ? { ate } : {}),
-    pagina: Math.max(1, Math.trunc(Number(search['pagina'])) || 1),
+    pagina: Math.min(100_000, Math.max(1, Math.trunc(Number(search['pagina'])) || 1)),
     ordem,
     dir: search['dir'] === 'asc' ? 'asc' : 'desc',
   };

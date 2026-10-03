@@ -1,6 +1,7 @@
 import { z } from 'zod';
 import { isoDateSchema } from '../shared/date';
 import { paginationQuerySchema } from '../shared/pagination';
+import { dbIdSchema } from '../shared/params';
 import { periodRefinementMessage, refinePeriod } from '../shared/period';
 import { admissionStatusSchema } from './admission.enums';
 
@@ -16,7 +17,7 @@ export type AdmissionSortField = (typeof admissionSortFields)[number];
 export const listAdmissionsQuerySchema = paginationQuerySchema
   .extend({
     status: admissionStatusSchema.optional(),
-    departmentId: z.coerce.number().int().positive().optional(),
+    departmentId: dbIdSchema.optional(),
     /** Filtra pela data de internação (inclusive). */
     from: isoDateSchema.optional(),
     to: isoDateSchema.optional(),

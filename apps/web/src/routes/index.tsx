@@ -1,3 +1,4 @@
+import { INT4_MAX } from '@hospital/contracts';
 import { createFileRoute, useNavigate } from '@tanstack/react-router';
 import {
   BedDouble,
@@ -39,7 +40,7 @@ export const Route = createFileRoute('/')({
   validateSearch: (search: Record<string, unknown>): { dias: PeriodDays; dept?: number } => {
     const dias = PERIODS.find((d) => d === Number(search['dias'])) ?? 30;
     const dept = Number(search['dept']);
-    return Number.isInteger(dept) && dept > 0 ? { dias, dept } : { dias };
+    return Number.isInteger(dept) && dept > 0 && dept <= INT4_MAX ? { dias, dept } : { dias };
   },
   loaderDeps: ({ search }) => search,
   loader: async ({ deps }) => {

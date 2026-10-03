@@ -67,6 +67,12 @@ export class ProblemDetailsFilter implements ExceptionFilter {
 
     if (exception instanceof HttpException) {
       const status = exception.getStatus();
+      if (status === HttpStatus.TOO_MANY_REQUESTS) {
+        return {
+          ...base(status, httpTitle(status)),
+          detail: 'Muitas requisições em pouco tempo. Tente novamente em instantes.',
+        };
+      }
       return { ...base(status, httpTitle(status)), detail: httpDetail(exception) };
     }
 
@@ -84,6 +90,7 @@ function base(status: number, title: string): ProblemDetails {
 
 function httpTitle(status: number): string {
   if (status === HttpStatus.NOT_FOUND) return 'Recurso não encontrado';
+  if (status === HttpStatus.TOO_MANY_REQUESTS) return 'Muitas requisições';
   if (status >= 500) return 'Erro interno';
   return 'Requisição inválida';
 }
