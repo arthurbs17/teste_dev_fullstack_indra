@@ -1,6 +1,7 @@
 import { Module } from '@nestjs/common';
 import { APP_FILTER, APP_INTERCEPTOR, APP_PIPE } from '@nestjs/core';
 import { ZodSerializerInterceptor, ZodValidationPipe } from 'nestjs-zod';
+import { AdmissionsModule } from './modules/admissions/admissions.module';
 import { DepartmentsModule } from './modules/departments/departments.module';
 import { HealthModule } from './modules/health/health.module';
 import { IndicatorsModule } from './modules/indicators/indicators.module';
@@ -17,6 +18,7 @@ import { PrismaModule } from './shared/infrastructure/prisma/prisma.module';
     HealthModule,
     DepartmentsModule,
     IndicatorsModule,
+    AdmissionsModule,
   ],
   providers: [
     // Valida entrada (query, params, body) com os schemas de @hospital/contracts
