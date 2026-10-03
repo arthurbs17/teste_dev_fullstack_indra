@@ -1,6 +1,7 @@
 import { Controller, Get, HttpStatus } from '@nestjs/common';
 import { ApiOperation, ApiTags } from '@nestjs/swagger';
 import { ZodResponse } from 'nestjs-zod';
+import { ApiProblemResponses } from '../../../../shared/infrastructure/http/api-problem-responses.decorator';
 import { GetDepartmentOccupancyUseCase } from '../../application/use-cases/get-department-occupancy.use-case';
 import { ListDepartmentsUseCase } from '../../application/use-cases/list-departments.use-case';
 import { DepartmentDto, DepartmentOccupancyDto } from './department.dto';
@@ -17,6 +18,7 @@ export class DepartmentsController {
   @Get()
   @ApiOperation({ summary: 'Lista os departamentos (usado nos filtros)' })
   @ZodResponse({ status: HttpStatus.OK, type: [DepartmentDto] })
+  @ApiProblemResponses()
   async list() {
     const departments = await this.listDepartments.execute();
     return departments.map(DepartmentPresenter.toResponse);
@@ -29,6 +31,7 @@ export class DepartmentsController {
       'Ordenado da maior para a menor taxa. Leito ocupado = internação com status "internado".',
   })
   @ZodResponse({ status: HttpStatus.OK, type: [DepartmentOccupancyDto] })
+  @ApiProblemResponses()
   async occupancy() {
     const occupancy = await this.getOccupancy.execute();
     return occupancy.map(DepartmentPresenter.toOccupancyResponse);

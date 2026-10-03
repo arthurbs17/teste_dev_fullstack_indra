@@ -12,7 +12,7 @@ export class HealthController {
 
   @Get()
   @ZodResponse({ status: HttpStatus.OK, type: HealthDto, description: 'API e banco disponíveis' })
-  @ApiServiceUnavailableResponse({ description: 'Banco indisponível' })
+  @ApiServiceUnavailableResponse({ description: 'Banco indisponível', type: HealthDto.Output })
   async check(@Res({ passthrough: true }) response: Response) {
     const report = await this.checkHealth.execute();
     if (report.status !== 'ok') response.status(HttpStatus.SERVICE_UNAVAILABLE);
