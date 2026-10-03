@@ -1,0 +1,14 @@
+{
+  "extends": "@hospital/tsconfig/vite-react.json",
+  "compilerOptions": {
+    "types": ["vite/client", "vitest/globals"],
+    "noImplicitReturns": true,
+    "noPropertyAccessFromIndexSignature": true,
+    "exactOptionalPropertyTypes": true,
+    "noUncheckedSideEffectImports": true,
+    "paths": {
+      "@/*": ["./src/*"]
+    }
+  },
+  "include": ["src/**/*.ts", "src/**/*.tsx", "vite.config.ts", "vitest.config.ts"]
+}
