@@ -47,6 +47,32 @@
           }
         }
       }
+    },
+    {
+      "includes": ["apps/api/src/**/domain/**", "apps/api/src/**/application/**"],
+      "linter": {
+        "rules": {
+          "style": {
+            "noRestrictedImports": {
+              "level": "error",
+              "options": {
+                "patterns": [
+                  {
+                    "group": [
+                      "@nestjs/*",
+                      "@prisma/*",
+                      "express",
+                      "**/infrastructure/**",
+                      "**/generated/**"
+                    ],
+                    "message": "Arquitetura hexagonal: domain e application não dependem de framework, ORM ou infraestrutura. Defina um port e implemente-o em infrastructure/."
+                  }
+                ]
+              }
+            }
+          }
+        }
+      }
     }
   ]
 }
