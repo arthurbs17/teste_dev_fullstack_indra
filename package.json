@@ -1,0 +1,25 @@
+{
+  "name": "hospital-dashboard",
+  "private": true,
+  "description": "Dashboard de gest\u00e3o hospitalar: API NestJS + frontend Next.js em monorepo Turborepo",
+  "packageManager": "pnpm@10.34.6",
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "build": "turbo run build",
+    "dev": "turbo run dev",
+    "lint": "biome lint .",
+    "format": "biome format --write .",
+    "check": "biome check .",
+    "check:fix": "biome check --write .",
+    "typecheck": "turbo run typecheck",
+    "test": "turbo run test",
+    "test:e2e": "turbo run test:e2e"
+  },
+  "devDependencies": {
+    "@biomejs/biome": "2.5.15",
+    "turbo": "^2.11.7",
+    "typescript": "~5.9.3"
+  }
+}

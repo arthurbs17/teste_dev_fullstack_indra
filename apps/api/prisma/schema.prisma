@@ -1,0 +1,100 @@
+// O schema do banco é criado pelos scripts SQL em database/init (fonte de
+// verdade). Este arquivo foi obtido por introspecção (`pnpm prisma:pull`) e
+// ajustado apenas com nomes em camelCase via @map/@@map. As check constraints
+// (status, gênero, cargo) existem no banco e são validadas no domínio.
+// As colunas são TIMESTAMP sem fuso; o banco roda em UTC.
+
+generator client {
+  provider     = "prisma-client"
+  output       = "../src/generated/prisma"
+  moduleFormat = "cjs"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model Department {
+  id         Int         @id @default(autoincrement())
+  name       String      @db.VarChar(100)
+  totalBeds  Int         @map("total_beds")
+  admissions Admission[]
+  staff      Staff[]
+
+  @@map("departments")
+}
+
+model Staff {
+  id           Int         @id @default(autoincrement())
+  name         String      @db.VarChar(150)
+  role         String      @db.VarChar(50)
+  departmentId Int         @map("department_id")
+  department   Department  @relation(fields: [departmentId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  admissions   Admission[]
+
+  @@map("staff")
+}
+
+model Patient {
+  id         Int         @id @default(autoincrement())
+  name       String      @db.VarChar(150)
+  birthDate  DateTime    @map("birth_date") @db.Date
+  gender     String      @db.Char(1)
+  document   String      @unique @db.VarChar(20)
+  admissions Admission[]
+
+  @@map("patients")
+}
+
+model Admission {
+  id               Int         @id @default(autoincrement())
+  patientId        Int         @map("patient_id")
+  departmentId     Int         @map("department_id")
+  attendingStaffId Int?        @map("attending_staff_id")
+  bedNumber        Int         @map("bed_number")
+  admissionDate    DateTime    @map("admission_date") @db.Timestamp(6)
+  dischargeDate    DateTime?   @map("discharge_date") @db.Timestamp(6)
+  status           String      @db.VarChar(20)
+  diagnosis        String?     @db.VarChar(200)
+  patient          Patient     @relation(fields: [patientId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  department       Department  @relation(fields: [departmentId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  attendingStaff   Staff?      @relation(fields: [attendingStaffId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  exams            Exam[]
+  vitalSigns       VitalSign[]
+
+  @@index([departmentId], map: "idx_admissions_department")
+  @@index([patientId], map: "idx_admissions_patient")
+  @@index([status], map: "idx_admissions_status")
+  @@map("admissions")
+}
+
+model Exam {
+  id          Int       @id @default(autoincrement())
+  admissionId Int       @map("admission_id")
+  examType    String    @map("exam_type") @db.VarChar(100)
+  requestedAt DateTime  @map("requested_at") @db.Timestamp(6)
+  resultAt    DateTime? @map("result_at") @db.Timestamp(6)
+  status      String    @db.VarChar(20)
+  resultValue String?   @map("result_value") @db.VarChar(200)
+  admission   Admission @relation(fields: [admissionId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+
+  @@index([admissionId], map: "idx_exams_admission")
+  @@index([status], map: "idx_exams_status")
+  @@map("exams")
+}
+
+model VitalSign {
+  id                Int       @id @default(autoincrement())
+  admissionId       Int       @map("admission_id")
+  measuredAt        DateTime  @map("measured_at") @db.Timestamp(6)
+  heartRate         Int?      @map("heart_rate")
+  systolicPressure  Int?      @map("systolic_pressure")
+  diastolicPressure Int?      @map("diastolic_pressure")
+  temperature       Decimal?  @db.Decimal(4, 1)
+  oxygenSaturation  Int?      @map("oxygen_saturation")
+  admission         Admission @relation(fields: [admissionId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+
+  @@index([admissionId], map: "idx_vitals_admission")
+  @@index([measuredAt], map: "idx_vitals_measured_at")
+  @@map("vital_signs")
+}

@@ -1,0 +1,3 @@
+# Dashboard com dados de pacientes: não deve ser indexado.
+User-agent: *
+Disallow: /

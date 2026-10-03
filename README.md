@@ -1,5 +1,12 @@
 # Teste Técnico — Desenvolvedor(a) Full Stack Pleno (Node/React)
 
+> **Entrega:** a solução, como rodar, decisões técnicas e o uso de IA estão em
+> [ENTREGA.md](ENTREGA.md). Para subir tudo:
+> `cp .env.example .env && docker compose up --build`
+> (dashboard em http://localhost:3000, API em http://localhost:3001/docs).
+>
+> O enunciado original do desafio segue abaixo, sem alterações.
+
 ## Sobre o projeto
 
 Este teste simula um cenário real de um dos nossos squads: evoluir o uso de
