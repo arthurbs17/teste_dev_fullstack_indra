@@ -1,11 +1,13 @@
 import { Controller, Get, HttpStatus, Res } from '@nestjs/common';
 import { ApiServiceUnavailableResponse, ApiTags } from '@nestjs/swagger';
+import { SkipThrottle } from '@nestjs/throttler';
 import type { Response } from 'express';
 import { ZodResponse } from 'nestjs-zod';
 import { CheckHealthUseCase } from '../../application/use-cases/check-health.use-case';
 import { HealthDto } from './health.dto';
 
 @ApiTags('health')
+@SkipThrottle()
 @Controller('health')
 export class HealthController {
   constructor(private readonly checkHealth: CheckHealthUseCase) {}

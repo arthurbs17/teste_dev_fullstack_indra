@@ -35,10 +35,10 @@ describe('Documentação OpenAPI (/docs-json)', () => {
   });
 
   it.each([
-    ['/api/v1/kpis', ['200', '400', '422', '500']],
-    ['/api/v1/occupancy/daily', ['200', '400', '404', '422', '500']],
-    ['/api/v1/admissions', ['200', '400', '500']],
-    ['/api/v1/admissions/{id}', ['200', '400', '404', '500']],
+    ['/api/v1/kpis', ['200', '400', '422', '429', '500']],
+    ['/api/v1/occupancy/daily', ['200', '400', '404', '422', '429', '500']],
+    ['/api/v1/admissions', ['200', '400', '429', '500']],
+    ['/api/v1/admissions/{id}', ['200', '400', '404', '429', '500']],
     ['/health', ['200', '503']],
   ])('documenta as respostas de %s', (path, statuses) => {
     expect(Object.keys(responsesOf(path)).sort()).toEqual(statuses);

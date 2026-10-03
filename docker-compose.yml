@@ -40,6 +40,8 @@ services:
       DATABASE_URL: postgresql://${POSTGRES_USER:?Defina POSTGRES_USER no .env (veja .env.example)}:${POSTGRES_PASSWORD:?Defina POSTGRES_PASSWORD no .env (veja .env.example)}@db:5432/${POSTGRES_DB:?Defina POSTGRES_DB no .env (veja .env.example)}
       API_PORT: 3001
       CORS_ORIGIN: ${CORS_ORIGIN:-}
+      RATE_LIMIT_PER_MINUTE: ${RATE_LIMIT_PER_MINUTE:-600}
+      SWAGGER_ENABLED: ${SWAGGER_ENABLED:-true}
     ports:
       - "${API_PORT:?Defina API_PORT no .env (veja .env.example)}:3001"
     depends_on:

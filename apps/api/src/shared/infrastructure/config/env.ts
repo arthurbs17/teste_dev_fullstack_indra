@@ -6,6 +6,14 @@ const envSchema = z.object({
   NODE_ENV: z.enum(['development', 'test', 'production']).default('development'),
   DATABASE_URL: z.url({ protocol: /^postgres(ql)?$/ }),
   API_PORT: z.coerce.number().int().positive().default(3001),
+  /**
+   * Requisições por minuto por IP. Como o web chama a API pelo servidor, todos
+   * os usuários do dashboard chegam pelo IP do container do web: o limite
+   * protege contra abuso de acesso direto, não substitui um rate limit na borda.
+   */
+  RATE_LIMIT_PER_MINUTE: z.coerce.number().int().positive().default(600),
+  /** Swagger em /docs. Ligado por padrão no desafio; desligável em produção. */
+  SWAGGER_ENABLED: z.stringbool().default(true),
   /** Lista separada por vírgula. Vazio desabilita CORS. */
   CORS_ORIGIN: z
     .string()
