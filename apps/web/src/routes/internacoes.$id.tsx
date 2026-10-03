@@ -1,7 +1,8 @@
 import { createFileRoute, Link, notFound } from '@tanstack/react-router';
-import { ArrowLeft, FlaskConical, Stethoscope, User } from 'lucide-react';
+import { ArrowLeft, FlaskConical, type LucideIcon, Stethoscope, User } from 'lucide-react';
 import {
   CartesianGrid,
+  Legend,
   Line,
   LineChart,
   ResponsiveContainer,
@@ -10,59 +11,57 @@ import {
   YAxis,
 } from 'recharts';
 import { AppShell, Card } from '@/components/AppShell';
-import { getAdmission } from '@/lib/api';
-import { age, fmtDate, fmtDateTime, STATUS_CLASS, STATUS_LABEL, stayDays } from '@/lib/format';
+import { RouteError } from '@/components/RouteError';
+import { getAdmission } from '@/lib/api/functions';
+import {
+  EXAM_STATUS_CLASS,
+  EXAM_STATUS_LABEL,
+  fmtDate,
+  fmtDateTime,
+  fmtNum,
+  ROLE_LABEL,
+  STATUS_CLASS,
+  STATUS_LABEL,
+} from '@/lib/format';
+
+const AXIS_TICK = { fontSize: 11, fill: 'var(--color-muted-foreground)' };
 
 export const Route = createFileRoute('/internacoes/$id')({
-  loader: async ({ params, context }) => {
-    const admission = await context.queryClient.ensureQueryData({
-      queryKey: ['admission', params.id],
-      queryFn: () => getAdmission(Number(params.id)),
-    });
-    if (!admission) throw notFound();
-    return { admission };
+  loader: async ({ params }) => {
+    const id = Number(params.id);
+    if (!Number.isInteger(id) || id <= 0) throw notFound();
+    return { admission: await getAdmission({ data: { id } }) };
   },
   head: ({ loaderData }) => ({
     meta: [
       {
         title: loaderData
-          ? `Internação #${loaderData.admission.id} — Gestão Hospitalar`
+          ? `${loaderData.admission.patient.name} — Internação #${loaderData.admission.id}`
           : 'Internação não encontrada',
       },
-      {
-        name: 'description',
-        content: 'Detalhe da internação: paciente, exames e série de sinais vitais.',
-      },
-      { property: 'og:title', content: 'Detalhe da internação — Gestão Hospitalar' },
-      {
-        property: 'og:description',
-        content: 'Detalhe da internação: paciente, exames e série de sinais vitais.',
-      },
-      ...(loaderData ? [] : [{ name: 'robots', content: 'noindex' }]),
+      { name: 'robots', content: 'noindex' },
     ],
   }),
+  errorComponent: RouteError,
+  notFoundComponent: AdmissionNotFound,
   component: Detalhe,
 });
 
 function Detalhe() {
   const { admission: a } = Route.useLoaderData();
-  const vitals = a.vitals.map((v) => ({ ...v, dia: fmtDateTime(v.measuredAt) }));
+  const vitals = a.vitalSigns.map((v) => ({ ...v, label: fmtDateTime(v.measuredAt) }));
 
   return (
     <AppShell>
       <div className="mx-auto max-w-6xl space-y-5">
-        <Link
-          to="/internacoes"
-          search={{ pagina: 1, ordem: 'admissionDate', dir: 'desc' }}
-          className="inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-primary"
-        >
-          <ArrowLeft className="h-4 w-4" /> Voltar para internações
-        </Link>
+        <BackLink />
 
         <header className="flex flex-wrap items-center justify-between gap-3">
           <div>
             <h1 className="text-2xl font-semibold tracking-tight">{a.patient.name}</h1>
-            <p className="text-sm text-muted-foreground">{a.diagnosis}</p>
+            <p className="text-sm text-muted-foreground">
+              {a.diagnosis ?? 'Sem diagnóstico registrado'} · Internação #{a.id}
+            </p>
           </div>
           <span className={`rounded-full px-3 py-1 text-sm font-medium ${STATUS_CLASS[a.status]}`}>
             {STATUS_LABEL[a.status]}
@@ -72,84 +71,115 @@ function Detalhe() {
         <div className="grid gap-4 md:grid-cols-3">
           <Card title="Paciente">
             <dl className="space-y-2 text-sm">
-              <Row icon={User} k="Idade" v={`${age(a.patient.birthDate)} anos`} />
-              <Row k="Sexo" v={a.patient.gender === 'M' ? 'Masculino' : 'Feminino'} />
-              <Row k="Nascimento" v={fmtDate(a.patient.birthDate)} />
-              <Row k="CPF" v={a.patient.cpf} />
+              <Row icon={User} label="Idade" value={`${a.patient.age} anos`} />
+              <Row label="Sexo" value={a.patient.gender === 'M' ? 'Masculino' : 'Feminino'} />
+              <Row label="Nascimento" value={fmtDate(a.patient.birthDate)} />
+              <Row label="Documento" value={a.patient.document} />
             </dl>
           </Card>
           <Card title="Internação">
             <dl className="space-y-2 text-sm">
-              <Row k="Departamento" v={a.department.name} />
-              <Row k="Leito" v={String(a.bed)} />
-              <Row k="Admissão" v={fmtDate(a.admissionDate)} />
-              <Row k="Alta" v={a.dischargeDate ? fmtDate(a.dischargeDate) : '—'} />
-              <Row k="Permanência" v={`${stayDays(a.admissionDate, a.dischargeDate)} dias`} />
+              <Row label="Departamento" value={a.department.name} />
+              <Row label="Leito" value={String(a.bedNumber)} />
+              <Row label="Entrada" value={fmtDateTime(a.admissionDate)} />
+              <Row label="Saída" value={a.dischargeDate ? fmtDateTime(a.dischargeDate) : '—'} />
+              <Row label="Permanência" value={`${fmtNum(a.lengthOfStayDays)} dias`} />
             </dl>
           </Card>
           <Card title="Responsável">
-            <dl className="space-y-2 text-sm">
-              <Row icon={Stethoscope} k="Médico" v={a.doctor.name} />
-              <Row k="Especialidade" v={a.doctor.specialty} />
-              <Row k="Registro" v={a.doctor.crm} />
-            </dl>
+            {a.attendingStaff ? (
+              <dl className="space-y-2 text-sm">
+                <Row icon={Stethoscope} label="Nome" value={a.attendingStaff.name} />
+                <Row label="Função" value={ROLE_LABEL[a.attendingStaff.role]} />
+              </dl>
+            ) : (
+              <p className="text-sm text-muted-foreground">Nenhum responsável registrado.</p>
+            )}
           </Card>
         </div>
 
         <Card title="Sinais vitais">
-          <ResponsiveContainer width="100%" height={300}>
-            <LineChart data={vitals} margin={{ left: -18, right: 8, top: 4 }}>
-              <CartesianGrid strokeDasharray="3 3" stroke="var(--color-border)" vertical={false} />
-              <XAxis
-                dataKey="dia"
-                tick={{ fontSize: 11, fill: 'var(--color-muted-foreground)' }}
-                minTickGap={40}
-              />
-              <YAxis tick={{ fontSize: 11, fill: 'var(--color-muted-foreground)' }} />
-              <Tooltip />
-              <Line
-                type="monotone"
-                dataKey="heartRate"
-                name="FC (bpm)"
-                stroke="var(--color-chart-2)"
-                strokeWidth={2}
-                dot={false}
-              />
-              <Line
-                type="monotone"
-                dataKey="systolic"
-                name="PA sistólica"
-                stroke="var(--color-chart-1)"
-                strokeWidth={2}
-                dot={false}
-              />
-              <Line
-                type="monotone"
-                dataKey="diastolic"
-                name="PA diastólica"
-                stroke="var(--color-chart-3)"
-                strokeWidth={2}
-                dot={false}
-              />
-              <Line
-                type="monotone"
-                dataKey="spo2"
-                name="SpO₂ (%)"
-                stroke="var(--color-chart-4)"
-                strokeWidth={2}
-                dot={false}
-              />
-            </LineChart>
-          </ResponsiveContainer>
-          <div className="mt-3 grid grid-cols-2 gap-2 text-xs sm:grid-cols-4">
-            <Legend color="var(--color-chart-2)" label="Frequência cardíaca" />
-            <Legend color="var(--color-chart-1)" label="Pressão sistólica" />
-            <Legend color="var(--color-chart-3)" label="Pressão diastólica" />
-            <Legend color="var(--color-chart-4)" label="Saturação O₂" />
-          </div>
-          <p className="mt-2 text-xs text-muted-foreground">
-            Temperatura: {vitals.map((v) => v.temperature.toFixed(1)).join(' · ')} °C
-          </p>
+          {vitals.length === 0 ? (
+            <p className="text-sm text-muted-foreground">
+              Nenhuma medição registrada nesta internação.
+            </p>
+          ) : (
+            <div className="grid gap-6 lg:grid-cols-3">
+              <div className="lg:col-span-2">
+                <p className="mb-2 text-xs font-medium text-muted-foreground">
+                  Frequência cardíaca, pressão arterial e saturação
+                </p>
+                <ResponsiveContainer width="100%" height={280}>
+                  <LineChart data={vitals} margin={{ left: -18, right: 8, top: 4 }}>
+                    <CartesianGrid
+                      strokeDasharray="3 3"
+                      stroke="var(--color-border)"
+                      vertical={false}
+                    />
+                    <XAxis dataKey="label" tick={AXIS_TICK} minTickGap={40} />
+                    <YAxis tick={AXIS_TICK} />
+                    <Tooltip />
+                    <Legend wrapperStyle={{ fontSize: 12 }} />
+                    <Line
+                      type="monotone"
+                      dataKey="heartRate"
+                      name="FC (bpm)"
+                      stroke="var(--color-chart-2)"
+                      strokeWidth={2}
+                      connectNulls
+                    />
+                    <Line
+                      type="monotone"
+                      dataKey="systolicPressure"
+                      name="PA sistólica (mmHg)"
+                      stroke="var(--color-chart-1)"
+                      strokeWidth={2}
+                      connectNulls
+                    />
+                    <Line
+                      type="monotone"
+                      dataKey="diastolicPressure"
+                      name="PA diastólica (mmHg)"
+                      stroke="var(--color-chart-3)"
+                      strokeWidth={2}
+                      connectNulls
+                    />
+                    <Line
+                      type="monotone"
+                      dataKey="oxygenSaturation"
+                      name="SpO₂ (%)"
+                      stroke="var(--color-chart-4)"
+                      strokeWidth={2}
+                      connectNulls
+                    />
+                  </LineChart>
+                </ResponsiveContainer>
+              </div>
+              <div>
+                <p className="mb-2 text-xs font-medium text-muted-foreground">Temperatura (°C)</p>
+                <ResponsiveContainer width="100%" height={280}>
+                  <LineChart data={vitals} margin={{ left: -18, right: 8, top: 4 }}>
+                    <CartesianGrid
+                      strokeDasharray="3 3"
+                      stroke="var(--color-border)"
+                      vertical={false}
+                    />
+                    <XAxis dataKey="label" tick={AXIS_TICK} minTickGap={40} />
+                    <YAxis tick={AXIS_TICK} domain={[35, 40]} />
+                    <Tooltip />
+                    <Line
+                      type="monotone"
+                      dataKey="temperature"
+                      name="Temperatura (°C)"
+                      stroke="var(--color-destructive)"
+                      strokeWidth={2}
+                      connectNulls
+                    />
+                  </LineChart>
+                </ResponsiveContainer>
+              </div>
+            </div>
+          )}
         </Card>
 
         <Card title="Exames">
@@ -165,21 +195,24 @@ function Detalhe() {
                   className="flex flex-wrap items-center justify-between gap-2 py-3 text-sm"
                 >
                   <div className="flex items-center gap-2">
-                    <FlaskConical className="h-4 w-4 text-primary" />
+                    <FlaskConical className="h-4 w-4 text-primary" aria-hidden />
                     <div>
-                      <p className="font-medium">{e.type}</p>
+                      <p className="font-medium">{e.examType}</p>
                       <p className="text-xs text-muted-foreground">
                         Solicitado em {fmtDateTime(e.requestedAt)}
                         {e.resultAt ? ` · Resultado em ${fmtDateTime(e.resultAt)}` : ''}
+                        {e.turnaroundHours !== null ? ` (${fmtNum(e.turnaroundHours)} h)` : ''}
                       </p>
                     </div>
                   </div>
                   <div className="flex items-center gap-2">
-                    {e.result && <span className="text-xs text-muted-foreground">{e.result}</span>}
+                    {e.resultValue && (
+                      <span className="text-xs text-muted-foreground">{e.resultValue}</span>
+                    )}
                     <span
-                      className={`rounded-full px-2 py-0.5 text-xs font-medium ${e.status === 'concluido' ? 'bg-success/15 text-success' : 'bg-warning/20 text-foreground'}`}
+                      className={`rounded-full px-2 py-0.5 text-xs font-medium ${EXAM_STATUS_CLASS[e.status]}`}
                     >
-                      {e.status === 'concluido' ? 'Concluído' : 'Pendente'}
+                      {EXAM_STATUS_LABEL[e.status]}
                     </span>
                   </div>
                 </li>
@@ -192,22 +225,42 @@ function Detalhe() {
   );
 }
 
-function Row({ k, v, icon: Icon }: { k: string; v: string; icon?: typeof User }) {
+function AdmissionNotFound() {
+  return (
+    <AppShell>
+      <div className="mx-auto max-w-xl space-y-4">
+        <BackLink />
+        <Card className="p-8 text-center">
+          <h1 className="text-lg font-semibold">Internação não encontrada</h1>
+          <p className="mt-1 text-sm text-muted-foreground">
+            Ela pode ter sido removida ou o endereço está incorreto.
+          </p>
+        </Card>
+      </div>
+    </AppShell>
+  );
+}
+
+function BackLink() {
+  return (
+    <Link
+      to="/internacoes"
+      search={{ pagina: 1, ordem: 'admissionDate', dir: 'desc' }}
+      className="inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-primary"
+    >
+      <ArrowLeft className="h-4 w-4" aria-hidden /> Voltar para internações
+    </Link>
+  );
+}
+
+function Row({ label, value, icon: Icon }: { label: string; value: string; icon?: LucideIcon }) {
   return (
     <div className="flex items-center justify-between gap-2">
       <dt className="flex items-center gap-1.5 text-muted-foreground">
-        {Icon && <Icon className="h-3.5 w-3.5" />}
-        {k}
+        {Icon && <Icon className="h-3.5 w-3.5" aria-hidden />}
+        {label}
       </dt>
-      <dd className="font-medium text-right">{v}</dd>
+      <dd className="text-right font-medium">{value}</dd>
     </div>
-  );
-}
-function Legend({ color, label }: { color: string; label: string }) {
-  return (
-    <span className="flex items-center gap-1.5 text-muted-foreground">
-      <span className="h-0.5 w-4 inline-block" style={{ backgroundColor: color }} />
-      {label}
-    </span>
   );
 }

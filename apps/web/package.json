@@ -13,8 +13,8 @@
     "test:watch": "vitest"
   },
   "dependencies": {
+    "@hospital/contracts": "workspace:*",
     "@tailwindcss/vite": "^4.2.1",
-    "@tanstack/react-query": "^5.101.1",
     "@tanstack/react-router": "1.170.41",
     "@tanstack/react-start": "1.168.60",
     "@tanstack/router-plugin": "1.168.42",
@@ -26,7 +26,8 @@
     "tailwind-merge": "^3.5.0",
     "tailwindcss": "^4.2.1",
     "tw-animate-css": "^1.3.4",
-    "vite-tsconfig-paths": "^6.0.2"
+    "vite-tsconfig-paths": "^6.0.2",
+    "zod": "^4.6.5"
   },
   "devDependencies": {
     "@hospital/tsconfig": "workspace:*",

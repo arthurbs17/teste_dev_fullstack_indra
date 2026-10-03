@@ -24,6 +24,6 @@ export default defineConfig(({ command }) => ({
   ],
   resolve: {
     // Uma única cópia de React e TanStack no monorepo
-    dedupe: ['react', 'react-dom', '@tanstack/react-query', '@tanstack/react-router'],
+    dedupe: ['react', 'react-dom', '@tanstack/react-router'],
   },
 }));
