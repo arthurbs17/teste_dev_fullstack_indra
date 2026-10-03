@@ -29,33 +29,36 @@ services:
       db:
         condition: service_healthy
 
+  api:
+    build:
+      context: .
+      dockerfile: apps/api/Dockerfile
+    container_name: hospital_api
+    restart: unless-stopped
+    environment:
+      NODE_ENV: production
+      DATABASE_URL: postgresql://${POSTGRES_USER:?Defina POSTGRES_USER no .env (veja .env.example)}:${POSTGRES_PASSWORD:?Defina POSTGRES_PASSWORD no .env (veja .env.example)}@db:5432/${POSTGRES_DB:?Defina POSTGRES_DB no .env (veja .env.example)}
+      API_PORT: 3001
+      CORS_ORIGIN: ${CORS_ORIGIN:-}
+    ports:
+      - "${API_PORT:?Defina API_PORT no .env (veja .env.example)}:3001"
+    depends_on:
+      db:
+        condition: service_healthy
+
   # --------------------------------------------------------------------------
-  # A partir daqui é com você! Adicione neste arquivo os serviços da sua
-  # aplicação (API Node e frontend React), para que todo o ambiente suba com
-  # um único comando: `docker compose up`.
-  #
-  # Sugestão de esqueleto para o serviço de API:
-  #
-  # api:
-  #   build: ./api
-  #   container_name: hospital_api
-  #   restart: unless-stopped
-  #   environment:
-  #     DATABASE_URL: postgres://${POSTGRES_USER:-hospital}:${POSTGRES_PASSWORD:-hospital123}@db:5432/${POSTGRES_DB:-hospital_db}
-  #   ports:
-  #     - "3001:3001"
-  #   depends_on:
-  #     db:
-  #       condition: service_healthy
+  # Serviço do frontend (Next.js), adicionado na fase 2:
   #
   # web:
-  #   build: ./web
+  #   build:
+  #     context: .
+  #     dockerfile: apps/web/Dockerfile
   #   container_name: hospital_web
-  #   restart: unless-stopped
   #   ports:
   #     - "3000:3000"
   #   depends_on:
-  #     - api
+  #     api:
+  #       condition: service_healthy
   # --------------------------------------------------------------------------
 
 volumes:
