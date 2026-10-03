@@ -1,6 +1,7 @@
 import { Controller, Get, HttpStatus, Query } from '@nestjs/common';
 import { ApiOperation, ApiTags } from '@nestjs/swagger';
 import { ZodResponse } from 'nestjs-zod';
+import { ApiProblemResponses } from '../../../../shared/infrastructure/http/api-problem-responses.decorator';
 import { GetDailyCensusUseCase } from '../../application/use-cases/get-daily-census.use-case';
 import { DailyCensusDto, DailyCensusQueryDto } from './indicators.dto';
 import { IndicatorsPresenter } from './indicators.presenter';
@@ -18,6 +19,7 @@ export class OccupancyController {
       'Filtrável por departamento.',
   })
   @ZodResponse({ status: HttpStatus.OK, type: DailyCensusDto })
+  @ApiProblemResponses(400, 404, 422)
   async daily(@Query() query: DailyCensusQueryDto) {
     return IndicatorsPresenter.toDailyCensusResponse(await this.getDailyCensus.execute(query));
   }
