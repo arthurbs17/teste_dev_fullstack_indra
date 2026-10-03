@@ -80,6 +80,10 @@ describe('Indicadores', () => {
     it('responde 404 para departamento inexistente', async () => {
       await http().get('/api/v1/occupancy/daily?departmentId=9999').expect(404);
     });
+
+    it('responde 400 (e não 500) para departamento acima do maior INTEGER do Postgres', async () => {
+      await http().get('/api/v1/occupancy/daily?departmentId=9007199254740991').expect(400);
+    });
   });
 
   describe('censo com fixtures controladas', () => {

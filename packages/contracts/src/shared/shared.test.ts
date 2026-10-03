@@ -28,3 +28,10 @@ describe('idParamSchema', () => {
     expect(idParamSchema.safeParse({ id: 'abc' }).success).toBe(false);
   });
 });
+
+describe('limites de int4', () => {
+  it('rejeita ids acima do maior INTEGER do Postgres', () => {
+    expect(idParamSchema.parse({ id: '2147483647' })).toEqual({ id: 2_147_483_647 });
+    expect(idParamSchema.safeParse({ id: '2147483648' }).success).toBe(false);
+  });
+});

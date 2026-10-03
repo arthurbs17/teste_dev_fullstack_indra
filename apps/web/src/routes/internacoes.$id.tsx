@@ -1,3 +1,4 @@
+import { INT4_MAX } from '@hospital/contracts';
 import { createFileRoute, Link, notFound } from '@tanstack/react-router';
 import { ArrowLeft, FlaskConical, type LucideIcon, Stethoscope, User } from 'lucide-react';
 import {
@@ -29,7 +30,7 @@ const AXIS_TICK = { fontSize: 11, fill: 'var(--color-muted-foreground)' };
 export const Route = createFileRoute('/internacoes/$id')({
   loader: async ({ params }) => {
     const id = Number(params.id);
-    if (!Number.isInteger(id) || id <= 0) throw notFound();
+    if (!Number.isInteger(id) || id <= 0 || id > INT4_MAX) throw notFound();
     return { admission: await getAdmission({ data: { id } }) };
   },
   head: ({ loaderData }) => ({
@@ -39,7 +40,6 @@ export const Route = createFileRoute('/internacoes/$id')({
           ? `${loaderData.admission.patient.name} — Internação #${loaderData.admission.id}`
           : 'Internação não encontrada',
       },
-      { name: 'robots', content: 'noindex' },
     ],
   }),
   errorComponent: RouteError,

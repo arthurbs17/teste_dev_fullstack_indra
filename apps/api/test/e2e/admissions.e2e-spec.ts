@@ -129,5 +129,10 @@ describe('Internações', () => {
     it('responde 400 para id inválido', async () => {
       await http().get('/api/v1/admissions/abc').expect(400);
     });
+
+    it('responde 400 (e não 500) para id acima do maior INTEGER do Postgres', async () => {
+      await http().get('/api/v1/admissions/2147483648').expect(400);
+      await http().get('/api/v1/admissions/9007199254740991').expect(400);
+    });
   });
 });
