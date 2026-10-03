@@ -6,7 +6,15 @@
     "useIgnoreFile": true
   },
   "files": {
-    "includes": ["**", "!**/generated", "!**/pnpm-lock.yaml"]
+    "includes": [
+      "**",
+      "!**/generated",
+      "!**/pnpm-lock.yaml",
+      "!**/routeTree.gen.ts",
+      "!**/.output",
+      "!**/.tanstack",
+      "!**/.nitro"
+    ]
   },
   "formatter": {
     "enabled": true,
@@ -65,7 +73,7 @@
                       "**/infrastructure/**",
                       "**/generated/**"
                     ],
-                    "message": "Arquitetura hexagonal: domain e application não dependem de framework, ORM ou infraestrutura. Defina um port e implemente-o em infrastructure/."
+                    "message": "Arquitetura hexagonal: domain e application n\u00e3o dependem de framework, ORM ou infraestrutura. Defina um port e implemente-o em infrastructure/."
                   }
                 ]
               }
@@ -73,6 +81,21 @@
           }
         }
       }
+    },
+    {
+      "includes": ["apps/web/**"],
+      "linter": {
+        "rules": {
+          "complexity": {
+            "useLiteralKeys": "off"
+          }
+        }
+      }
     }
-  ]
+  ],
+  "css": {
+    "parser": {
+      "tailwindDirectives": true
+    }
+  }
 }
